@@ -1,0 +1,16 @@
+# Documentation: http://docs.travis-ci.com/user/languages/julia/
+language: julia
+os:
+  - linux
+julia:
+  - 0.6
+  - nightly
+matrix:
+  allow_failures:
+    - julia: nightly
+  fast_finish: true
+notifications:
+  email: false
+after_success:
+  - julia -e 'Pkg.add("Documenter"); cd(Pkg.dir("Keys")); include(joinpath("docs", "make.jl"))'
+  - julia -e 'Pkg.add("Coverage"); cd(Pkg.dir("Keys")); using Coverage; Codecov.submit(process_folder())'
