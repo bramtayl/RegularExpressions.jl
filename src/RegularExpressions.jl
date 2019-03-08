@@ -284,7 +284,7 @@ true
 through(start, stop) = "$start-$stop"
 export through
 
-""""
+"""
     CLASSES
 
 Access with [`class`](@ref).
