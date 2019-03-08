@@ -1,14 +1,11 @@
-using Chunks
-import Documenter
+using RegularExpressions
+import Documenter: makedocs, deploydocs
 
-Documenter.makedocs(
-    modules = [Chunks],
-    format = :html,
-    sitename = "Chunks.jl",
-    root = joinpath(dirname(dirname(@__FILE__)), "docs"),
-    pages = Any["Home" => "index.md"],
-    strict = true,
-    linkcheck = true,
-    checkdocs = :exports,
-    authors = "Brandon Taylor"
+makedocs(
+    sitename = "RegularExpressions.jl",
+    strict = true
+)
+
+deploydocs(
+    repo = "github.com/bramtayl/RegularExpressions.jl.git"
 )
