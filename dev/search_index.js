@@ -189,7 +189,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Tutorial",
     "title": "RegularExpressions.CLASSES",
     "category": "constant",
-    "text": "\"     CLASSES\n\nAccess with class.\n\n\n\n\n\n"
+    "text": "CLASSES\n\nAccess with class.\n\n\n\n\n\n"
 },
 
 {
