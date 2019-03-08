@@ -560,10 +560,10 @@ export EXTRAS
 ```jldoctest
 julia> using RegularExpressions
 
-julia> p = pattern(extra(:standard_newline), "a", CONSTANTS.stop)
-r"(*ANYCRLF)a\$"
+julia> p = pattern(extra(:standard_newline), "a")
+r"(*ANYCRLF)a"
 
-julia> occursin(p, "a\r")
+julia> occursin(p, "a\\r")
 true
 
 julia> extra(:limit_match, 1)
@@ -578,7 +578,7 @@ export extra
     captured(it::AbstractString)
     captured(it::Number; relative = false)
 
-Refer to a `capture`[@ref]d group.
+Refer to a [`capture`](@ref)d group.
 
 ```jldoctest
 julia> using RegularExpressions
