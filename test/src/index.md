@@ -149,7 +149,6 @@ false
 ## General
 ```@docs
 pattern
-template
 raw
 not
 CONSTANTS
@@ -189,6 +188,7 @@ between
 
 ## Captures
 ```@docs
+template
 capture
 captured
 ```
