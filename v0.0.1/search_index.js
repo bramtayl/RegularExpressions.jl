@@ -149,7 +149,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Tutorial",
     "title": "RegularExpressions.extra",
     "category": "function",
-    "text": "extra(it)\nextra(it, value::Number)\n\nextra command. Access EXTRAS.\n\njulia> using RegularExpressions\n\njulia> p = pattern(extra(:standard_newline), \"a\", CONSTANTS.stop)\nr\"(*ANYCRLF)a$\"\n\njulia> occursin(p, \"a\r\")\ntrue\n\njulia> extra(:limit_match, 1)\n\"(*LIMIT_MATCH=1)\"\n\n\n\n\n\n"
+    "text": "extra(it)\nextra(it, value::Number)\n\nextra command. Access EXTRAS.\n\njulia> using RegularExpressions\n\njulia> p = pattern(extra(:standard_newline), \"a\")\nr\"(*ANYCRLF)a\"\n\njulia> occursin(p, \"a\\r\")\ntrue\n\njulia> extra(:limit_match, 1)\n\"(*LIMIT_MATCH=1)\"\n\n\n\n\n\n"
 },
 
 {
@@ -189,7 +189,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Tutorial",
     "title": "RegularExpressions.CLASSES",
     "category": "constant",
-    "text": "\"     CLASSES\n\nAccess with class.\n\n\n\n\n\n"
+    "text": "CLASSES\n\nAccess with class.\n\n\n\n\n\n"
 },
 
 {
@@ -269,7 +269,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Tutorial",
     "title": "RegularExpressions.captured",
     "category": "function",
-    "text": "captured(it::AbstractString)\ncaptured(it::Number; relative = false)\n\nRefer to a capture[@ref]d group.\n\njulia> using RegularExpressions\n\njulia> p = pattern(capture(\"a\"), capture(\"b\", name = \"second\"))\nr\"(a)(?<second>b)\"\n\njulia> t = template(captured(\"second\"), captured(1))\ns\"\\\\g<second>\\\\g<1>\"\n\njulia> replace(\"ab\", p => t)\n\"ba\"\n\njulia> p = pattern(captured(1, relative = true), capture(\"a\"))\nr\"\\g<+1>(a)\"\n\njulia> occursin(p, \"aa\")\ntrue\n\n\n\n\n\n"
+    "text": "captured(it::AbstractString)\ncaptured(it::Number; relative = false)\n\nRefer to a captured group.\n\njulia> using RegularExpressions\n\njulia> p = pattern(capture(\"a\"), capture(\"b\", name = \"second\"))\nr\"(a)(?<second>b)\"\n\njulia> t = template(captured(\"second\"), captured(1))\ns\"\\\\g<second>\\\\g<1>\"\n\njulia> replace(\"ab\", p => t)\n\"ba\"\n\njulia> p = pattern(captured(1, relative = true), capture(\"a\"))\nr\"\\g<+1>(a)\"\n\njulia> occursin(p, \"aa\")\ntrue\n\n\n\n\n\n"
 },
 
 {
