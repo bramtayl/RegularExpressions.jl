@@ -60,7 +60,9 @@ true
 const CONSTANTS = (
     any = ".",
     start = "^",
-    stop = "\$"
+    stop = "\$",
+    define = "DEFINE",
+    recursive = "R"
 )
 export CONSTANTS
 
@@ -575,37 +577,44 @@ extra(it, value::Number) = "(*$(EXTRAS[it])=$value)"
 export extra
 
 """
-    captured(it::AbstractString)
-    captured(it::Number; relative = false)
+    relative(it)
 
-Refer to a [`capture`](@ref)d group.
+Mark a reference as relative. For use with [`captured`](@ref) or [`whether`](@ref).
 
 ```jldoctest
 julia> using RegularExpressions
 
-julia> p = pattern(capture("a"), capture("b", name = "second"))
-r"(a)(?<second>b)"
-
-julia> t = template(captured("second"), captured(1))
-s"\\\\g<second>\\\\g<1>"
-
-julia> replace("ab", p => t)
-"ba"
-
-julia> p = pattern(captured(1, relative = true), capture("a"))
+julia> p = pattern(captured(relative(1)), capture("a"))
 r"\\g<+1>(a)"
 
 julia> occursin(p, "aa")
 true
 ```
 """
-captured(it::AbstractString) = "\\g<$it>"
-captured(it::Number; relative = false) =
-    if relative && it >= 0
-        "\\g<+$it>"
+relative(it) =
+    if it < 0
+        it
     else
-        "\\g<$it>"
+        "+$it"
     end
+export relative
+
+"""
+    captured(it)
+
+Refer to a [`capture`](@ref)d group. See [`relative`](@ref).
+
+```jldoctest
+julia> using RegularExpressions
+
+julia> p = pattern(capture("a"), captured(1))
+r"(a)\\g<1>"
+
+julia> occursin(p, "aa")
+true
+```
+"""
+captured(it) = "\\g<$it>"
 export captured
 
 """
@@ -634,11 +643,91 @@ pattern(them...; options...) =
 export pattern
 
 """
+    named(it)
+
+Check for a named capture group. For use with [`whether`](@ref).
+
+```jldoctest
+julia> using RegularExpressions
+
+julia> p = pattern(
+            CONSTANTS.start,
+            of(:maybe, capture("a", name = "first")),
+            whether(named("first"), "b", "c")
+        )
+r"^(?:(?<first>a))?(?(<first>)b|c)"
+
+julia> occursin(p, "ab")
+true
+```
+"""
+named(it) = "<$it>"
+export named
+
+"""
     template(them...)
 
-Splat of `SubstitutionString`. See examples in [`captured`](@ref).
+Splat of `SubstitutionString`.
+
+```jldoctest
+julia> using RegularExpressions
+
+julia> p = pattern(capture("a"))
+r"(a)"
+
+julia> t = template(captured(1), "b")
+s"\\\\g<1>b"
+
+julia> replace("a", p => t)
+"ab"
+```
 """
 template(them...) = SubstitutionString(string(them...))
 export template
+
+"""
+    is_version(it; at_least = false)
+
+Check whether the version of PCRE2 is `it`, (or, `at_least` `it`). For use with [`whether`](@ref).
+
+```jldoctest
+julia> using RegularExpressions
+
+julia> p = pattern(whether(version(1, at_least = true), "new", "old"))
+r"(?(VERSION>=1)new|old)"
+
+julia> occursin(p, "new")
+true
+```
+"""
+version(it; at_least = false) =
+    if at_least
+        "VERSION>=$it"
+    else
+        "VERSION=$it"
+    end
+export version
+
+"""
+    whether(condition, yes, no = "")
+
+Test for a condition. See [`relative`](@ref), and [`verion`](@ref).
+
+```jldoctest
+julia> using RegularExpressions
+
+julia> p = pattern(
+            CONSTANTS.start,
+            of(:maybe, capture("a")),
+            whether(1, "b", "c")
+        )
+r"^(?:(a))?(?(1)b|c)"
+
+julia> occursin(p, "ab")
+true
+```
+"""
+whether(condition, yes, no = "") = "(?($condition)$yes|$no)"
+export whether
 
 end
