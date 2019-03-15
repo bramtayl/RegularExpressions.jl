@@ -62,7 +62,7 @@ const CONSTANTS = (
     start = "^",
     stop = "\$",
     define = "DEFINE",
-    recursive = "R"
+    recur = "(?R)"
 )
 export CONSTANTS
 
