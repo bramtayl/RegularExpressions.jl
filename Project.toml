@@ -1,0 +1,9 @@
+name = "RegularExpressions"
+uuid = "27faeba3-bc54-5829-b163-df8cb949fe88"
+repo = "https://github.com/bramtayl/RegularExpressions.jl.git"
+
+[extras]
+Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+
+[targets]
+test = ["Documenter"]
