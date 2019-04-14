@@ -197,5 +197,7 @@ relative
 ## Conditions
 ```@docs
 whether
+exists
 version
+recurred
 ```

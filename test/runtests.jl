@@ -3,7 +3,8 @@ import Documenter: makedocs, deploydocs
 
 makedocs(
     sitename = "RegularExpressions.jl",
-    strict = true
+    strict = true,
+    modules = [RegularExpressions]
 )
 
 deploydocs(

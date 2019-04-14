@@ -8,7 +8,9 @@ end
 """
     not
 
-Use to negate a pattern. Use with [`short`](@ref), [`option`](@ref), [`class`](@ref), [`one_of`](@ref), [`property`](@ref), or [`script`](@ref).
+Use to negate a pattern.
+
+Use with [`short`](@ref), [`option`](@ref), [`class`](@ref), [`one_of`](@ref), [`property`](@ref), or [`script`](@ref).
 """
 const not = Not()
 export not
@@ -62,7 +64,7 @@ const CONSTANTS = (
     start = "^",
     stop = "\$",
     define = "DEFINE",
-    recur = "(?R)"
+    recurred = "R"
 )
 export CONSTANTS
 
@@ -90,8 +92,7 @@ const SHORTS = (
 )
 export SHORTS
 """
-    short(it)
-    short(::Not, it)
+    short([::Not], it)
 
 A short command. Access [`SHORTS`](@ref).
 
@@ -169,7 +170,7 @@ const PROPERTIES = (
     special = ("X", (
         letter_or_digit = "an",
         space = "sp",
-        named = "uc",
+        exists = "uc",
         word = "wd"
     ))
 )
@@ -219,7 +220,7 @@ property(::Not, general, specific) =
 export property
 
 """
-    script([::Not], it
+    script([::Not], it)
 
 A character from a script.
 
@@ -455,13 +456,16 @@ const KINDS = (
     after = "=",
     not_after = "!",
     before = "<=",
-    not_before = "<!"
+    not_before = "<!",
+    callout = "C"
 )
+
 export KINDS
 """
     kind(a_kind, them...)
 
-A variety of syntaxes: `a_kind` of `them`. Access [`KINDS`](@ref).
+A variety of syntaxes: `a_kind` of `them`. Access [`KINDS`](@ref). Use `repr` to
+pass strings to callouts.
 
 ```jldoctest
 julia> using RegularExpressions
@@ -495,7 +499,6 @@ const OPTIONS = (
     callout = "C"
 )
 export OPTIONS
-options = pairs((caseless = true,))
 make_flags(options, OPTIONS) =
     join(Generator(
         pair -> OPTIONS[pair[1]],
@@ -550,11 +553,19 @@ const EXTRAS = (
     unicode_newline = "ANY",
     nul = "NUL",
     standard_boundary = "BSR_ANYCRLF",
-    unicode_boundary = "BSR_UNICODE"
+    unicode_boundary = "BSR_UNICODE",
+    accept = "ACCEPT",
+    fail = "FAIL",
+    mark = "MARK",
+    commit = "COMMIT",
+    prune = "PRUNE",
+    skip = "SKIP",
+    then = "THEN"
 )
 export EXTRAS
 """
     extra(it)
+    extra(it, name)
     extra(it, value::Number)
 
 `extra` command. Access [`EXTRAS`](@ref).
@@ -568,11 +579,17 @@ r"(*ANYCRLF)a"
 julia> occursin(p, "a\\r")
 true
 
-julia> extra(:limit_match, 1)
-"(*LIMIT_MATCH=1)"
+julia> extra(:limit_match, 0)
+"(*LIMIT_MATCH=0)"
+
+julia> extra(:mark, "name")
+"(*MARK:name)"
 ```
 """
 extra(it) = "(*$(EXTRAS[it]))"
+# untested
+extra(it, name) = "(*$(EXTRAS[it]):$name)"
+# untested
 extra(it, value::Number) = "(*$(EXTRAS[it])=$value)"
 export extra
 
@@ -586,6 +603,12 @@ julia> using RegularExpressions
 
 julia> p = pattern(captured(relative(1)), capture("a"))
 r"\\g<+1>(a)"
+
+julia> occursin(p, "aa")
+true
+
+julia> p = pattern(capture("a"), captured(relative(-1)))
+r"(a)\\g<-1>"
 
 julia> occursin(p, "aa")
 true
@@ -643,9 +666,9 @@ pattern(them...; options...) =
 export pattern
 
 """
-    named(it)
+    exists(it)
 
-Check for a named capture group. For use with [`whether`](@ref).
+Check whether a capture group. For use with [`whether`](@ref).
 
 ```jldoctest
 julia> using RegularExpressions
@@ -653,7 +676,7 @@ julia> using RegularExpressions
 julia> p = pattern(
             CONSTANTS.start,
             of(:maybe, capture("a", name = "first")),
-            whether(named("first"), "b", "c")
+            whether(exists("first"), "b", "c")
         )
 r"^(?:(?<first>a))?(?(<first>)b|c)"
 
@@ -661,8 +684,8 @@ julia> occursin(p, "ab")
 true
 ```
 """
-named(it) = "<$it>"
-export named
+exists(it) = "<$it>"
+export exists
 
 """
     template(them...)
@@ -686,12 +709,18 @@ template(them...) = SubstitutionString(string(them...))
 export template
 
 """
-    is_version(it; at_least = false)
+    version(it; at_least = false)
 
 Check whether the version of PCRE2 is `it`, (or, `at_least` `it`). For use with [`whether`](@ref).
 
 ```jldoctest
 julia> using RegularExpressions
+
+julia> p = pattern(whether(version(1), "new", "old"))
+r"(?(VERSION=1)new|old)"
+
+julia> occursin(p, "new")
+false
 
 julia> p = pattern(whether(version(1, at_least = true), "new", "old"))
 r"(?(VERSION>=1)new|old)"
@@ -700,18 +729,17 @@ julia> occursin(p, "new")
 true
 ```
 """
-version(it; at_least = false) =
-    if at_least
-        "VERSION>=$it"
+version(it; at_least = false) = "VERSION$(if at_least
+        ">"
     else
-        "VERSION=$it"
-    end
+        ""
+    end)=$it"
 export version
 
 """
     whether(condition, yes, no = "")
 
-Test for a condition. See [`relative`](@ref), and [`verion`](@ref).
+Test for a condition. See [`relative`](@ref), [`exists`](@ref), [`recurred`](@ref), and [`version`](@ref).
 
 ```jldoctest
 julia> using RegularExpressions
@@ -729,5 +757,25 @@ true
 """
 whether(condition, yes, no = "") = "(?($condition)$yes|$no)"
 export whether
+
+"""
+    recurred(it::Number)
+    recurred(it)
+
+Check for recursion. Use with [`whether`](@ref).
+
+```jldoctest
+julia> using RegularExpressions
+
+julia> recurred(1)
+"R1"
+
+julia> recurred("name")
+"R&name"
+```
+"""
+recurred(it::Number) = "R$it"
+recurred(it) = "R&$it"
+export recurred
 
 end
