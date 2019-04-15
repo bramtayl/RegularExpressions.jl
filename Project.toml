@@ -2,6 +2,7 @@ name = "RegularExpressions"
 uuid = "27faeba3-bc54-5829-b163-df8cb949fe88"
 repo = "https://github.com/bramtayl/RegularExpressions.jl.git"
 verion = "0.0.2"
+authoer = ["Brandon Taylor <brandon.taylor221@gmail.com>"]
 
 [extras]
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
