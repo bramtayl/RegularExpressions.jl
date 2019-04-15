@@ -64,6 +64,7 @@ const CONSTANTS = (
     start = "^",
     stop = "\$",
     define = "DEFINE",
+    recur = "(?R)",
     recurred = "R"
 )
 export CONSTANTS
@@ -133,8 +134,8 @@ const PROPERTIES = (
         lowercase = "l",
         modifier = "m",
         other = "o",
-        uppercase = "u",
         titlecase = "t",
+        uppercase = "u",
         cased = "&"
     )),
     mark = ("M", (
@@ -299,9 +300,9 @@ const CLASSES = (
     blank = "blank",
     control = "cntrl",
     digit = "digit",
-    visible = "graph",
+    prints = "graph",
     lowercase = "lower",
-    print = "print",
+    prints_or_space = "print",
     punctuation = "punct",
     space = "space",
     uppercase = "upper",
@@ -358,7 +359,7 @@ const QUANTITIES = (
 export QUANTITIES
 """
     of(quantity::Symbol, them...; greed = :greedy)
-    of(quanitty::Number, them...)
+    of(quantity::Number, them...)
 
 A `quantity` `of` `it` with a certain `greed`. Acccess [`QUANTITIES`](@ref) and [`GREEDS`](@ref).
 
@@ -415,7 +416,7 @@ export between
 """
     or(them...)
 
-At least one of `them`.
+One of `them`.
 
 ```jldoctest
 julia> using RegularExpressions
@@ -587,9 +588,7 @@ julia> extra(:mark, "name")
 ```
 """
 extra(it) = "(*$(EXTRAS[it]))"
-# untested
 extra(it, name) = "(*$(EXTRAS[it]):$name)"
-# untested
 extra(it, value::Number) = "(*$(EXTRAS[it])=$value)"
 export extra
 
