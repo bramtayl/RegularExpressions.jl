@@ -1,5 +1,3 @@
-This package provides a human readable interface to regular expressions. I've left out a couple of regular expression features that I don't understand (recursion, backtracking control, call-backs). If you understand these features I'd love some help.
-
 # Tutorial
 
 I'll follow the example from `rex` for [url validation](https://cran.r-project.org/web/packages/rex/vignettes/url_parsing.html).
