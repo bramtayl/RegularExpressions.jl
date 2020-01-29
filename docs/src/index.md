@@ -135,10 +135,10 @@ julia> bads = (
             "http://.www.foo.bar./"
         );
 
-julia> all(occursin.(url_pattern, goods))
+julia> all(occursin(url_pattern, url) for url in goods)
 true
 
-julia> any(occursin.(url_pattern, bads))
+julia> any(occursin(url_pattern, url) for url in bads)
 false
 ```
 
