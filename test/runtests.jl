@@ -1,12 +1,4 @@
-using RegularExpressions
-import Documenter: makedocs, deploydocs
+import RegularExpressions
+import Documenter: doctest
 
-makedocs(
-    sitename = "RegularExpressions.jl",
-    strict = true,
-    modules = [RegularExpressions]
-)
-
-deploydocs(
-    repo = "github.com/bramtayl/RegularExpressions.jl.git"
-)
+doctest(RegularExpressions)

@@ -10,7 +10,8 @@ end
 
 Use to negate a pattern.
 
-Use with [`short`](@ref), [`option`](@ref), [`class`](@ref), [`one_of`](@ref), [`property`](@ref), or [`script`](@ref).
+Use with [`short`](@ref), [`option`](@ref), [`class`](@ref), [`one_of`](@ref),
+[`property`](@ref), or [`script`](@ref).
 """
 const not = Not()
 export not
@@ -95,7 +96,8 @@ export SHORTS
 """
     short([::Not], it)
 
-A short command. Access [`SHORTS`](@ref).
+A `short` command. Access [`SHORTS`](@ref). You can negate some `short` commands
+with [`not`](@ref).
 
 ```jldoctest
 julia> using RegularExpressions
@@ -179,7 +181,8 @@ export PROPERTIES
 """
     property([::Not], general, [specific])
 
-A character property. Access [`PROPERTIES`](@ref).
+A character property. Access [`PROPERTIES`](@ref). You can negate all
+properties with [`not`](@ref).
 
 ```jldoctest
 julia> using RegularExpressions
@@ -223,7 +226,7 @@ export property
 """
     script([::Not], it)
 
-A character from a script.
+A character from a script. You can negate all `script`s with [`not`](@ref).
 
 ```jldoctest
 julia> using RegularExpressions
@@ -248,7 +251,7 @@ export script
 """
     one_of([::Not], them...)
 
-Create a character class.
+Create a character class.  You can negate all classes with [`not`](@ref).
 
 ```jldoctest
 julia> using RegularExpressions
@@ -313,7 +316,8 @@ export CLASSES
 """
     class([::Not], it)
 
-Character classes. Access [`CLASSES`](@ref).
+Character classes. Access [`CLASSES`](@ref). You can negate all `class`es with
+[`not`](@ref).
 
 ```jldoctest
 julia> using RegularExpressions
@@ -361,7 +365,8 @@ export QUANTITIES
     of(quantity::Symbol, them...; greed = :greedy)
     of(quantity::Number, them...)
 
-A `quantity` `of` `it` with a certain `greed`. Acccess [`QUANTITIES`](@ref) and [`GREEDS`](@ref).
+A `quantity` `of` `it` with a certain `greed`. Acccess [`QUANTITIES`](@ref) and
+[`GREEDS`](@ref).
 
 ```jldoctest
 julia> using RegularExpressions
@@ -387,7 +392,8 @@ export of
 """
     between(low, high, them...; greed = :greedy)
 
-Between `low` and `high` of `it` with a certain `greed`. Access [`GREEDS`](@ref).
+Between `low` and `high` of `it` with a certain `greed`. Access
+[`GREEDS`](@ref).
 
 ```jldoctest
 julia> using RegularExpressions
@@ -455,18 +461,17 @@ const KINDS = (
     atomic = ">",
     comment = "#",
     after = "=",
-    not_after = "!",
     before = "<=",
-    not_before = "<!",
     callout = "C"
 )
 
 export KINDS
 """
-    kind(a_kind, them...)
+    kind([::Not], a_kind, them...)
 
 A variety of syntaxes: `a_kind` of `them`. Access [`KINDS`](@ref). Use `repr` to
-pass strings to callouts.
+pass strings to callouts. You can negate look-ahead and look-behinds with
+[`not`](@ref).
 
 ```jldoctest
 julia> using RegularExpressions
@@ -476,9 +481,19 @@ r"(?<=a)b"
 
 julia> occursin(p, "ab")
 true
+
+julia> negated = pattern(kind(not, :before, "a"), "b")
+r"(?<!a)b"
+
+julia> occursin(negated, "ab")
+false
 ```
 """
 kind(kind, them...) = "(?$(KINDS[kind])$(them...))"
+function kind(::Not, kind, them...)
+    negated = replace(KINDS[kind], '=' => '!')
+    "(?$negated$(them...))"
+end
 export kind
 
 """
@@ -595,7 +610,8 @@ export extra
 """
     relative(it)
 
-Mark a reference as relative. For use with [`captured`](@ref) or [`whether`](@ref).
+Mark a reference as relative. For use with [`captured`](@ref) or
+[`whether`](@ref).
 
 ```jldoctest
 julia> using RegularExpressions
@@ -710,7 +726,8 @@ export template
 """
     version(it; at_least = false)
 
-Check whether the version of PCRE2 is `it`, (or, `at_least` `it`). For use with [`whether`](@ref).
+Check whether the version of PCRE2 is `it`, (or, `at_least` `it`). For use with
+[`whether`](@ref).
 
 ```jldoctest
 julia> using RegularExpressions
@@ -738,7 +755,8 @@ export version
 """
     whether(condition, yes, no = "")
 
-Test for a condition. See [`relative`](@ref), [`exists`](@ref), [`recurred`](@ref), and [`version`](@ref).
+Test for a condition. See [`relative`](@ref), [`exists`](@ref),
+[`recurred`](@ref), and [`version`](@ref).
 
 ```jldoctest
 julia> using RegularExpressions
