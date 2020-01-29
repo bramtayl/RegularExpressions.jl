@@ -144,58 +144,10 @@ false
 
 # Interface
 
-## General
-```@docs
-pattern
-raw
-not
-CONSTANTS
-or
-kind
-KINDS
+```@index
+Modules = [RegularExpressions]
 ```
 
-## Shortcuts
-```@docs
-short
-SHORTS
-property
-PROPERTIES
-script
-option
-OPTIONS
-extra
-EXTRAS
-```
-
-## Classes
-```@docs
-one_of
-class
-CLASSES
-through
-```
-
-## Quantifiers
-```@docs
-GREEDS
-of
-QUANTITIES
-between
-```
-
-## Captures
-```@docs
-template
-capture
-captured
-relative
-```
-
-## Conditions
-```@docs
-whether
-exists
-version
-recurred
+```@autodocs
+Modules = [RegularExpressions]
 ```
