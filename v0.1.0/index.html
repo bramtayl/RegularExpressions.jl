@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Tutorial · RegularExpressions.jl</title><link href="https://fonts.googleapis.com/css?family=Lato|Roboto+Mono" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.11.1/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="assets/documenter.js"></script><script src="siteinfo.js"></script><script src="../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="assets/themes/documenter-dark.css" data-theme-name="documenter-dark"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit">RegularExpressions.jl</span></div><form class="docs-search" action="search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li class="is-active"><a class="tocitem" href>Tutorial</a><ul class="internal"><li class="toplevel"><a class="tocitem" href="#Interface-1"><span>Interface</span></a></li></ul></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>Tutorial</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Tutorial</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/bramtayl/RegularExpressions.jl/blob/master/docs/src/index.md" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><h1 id="Tutorial-1"><a class="docs-heading-anchor" href="#Tutorial-1">Tutorial</a><a class="docs-heading-anchor-permalink" href="#Tutorial-1" title="Permalink"></a></h1><p>I&#39;ll follow the example from <code>rex</code> for <a href="https://cran.r-project.org/web/packages/rex/vignettes/url_parsing.html">url validation</a>.</p><pre><code class="language-julia-repl">julia&gt; using RegularExpressions
+
+julia&gt; invalids = raw.((&quot;.&quot;, &quot;/&quot;, &quot; &quot;, &quot;-&quot;));
+
+julia&gt; url_pattern = pattern(
+            CONSTANTS.start,
+            capture(
+                or(
+                    kind(:group, &quot;http&quot;, of(:maybe, &quot;s&quot;)),
+                    &quot;ftp&quot;
+                ),
+                name = &quot;protocol&quot;
+            ),
+            raw(&quot;://&quot;),
+            of(:maybe,
+                capture(
+                    of(:some, one_of(not, short(:space))),
+                    name = &quot;username&quot;
+                ),
+                of(:maybe,
+                    raw(&quot;:&quot;),
+                    capture(
+                        of(:none_or_some, one_of(not, short(:space))),
+                        name = &quot;password&quot;
+                    )
+                ),
+                raw(&quot;@&quot;)
+            ),
+            capture(
+                of(:none_or_some,
+                    of(:some, one_of(not, invalids...)),
+                    of(:none_or_some, raw(&quot;-&quot;))
+                ),
+                of(:some, one_of(not, invalids...)),
+                name = &quot;host&quot;
+            ),
+            capture(
+                of(:none_or_some,
+                    raw(&quot;.&quot;),
+                    of(:none_or_some,
+                        of(:some, one_of(not, invalids...)),
+                        of(:none_or_some, raw(&quot;-&quot;))
+                    ),
+                    of(:some, one_of(not, invalids...))
+                ),
+                name = &quot;domain&quot;
+            ),
+            raw(&quot;.&quot;), capture(
+                between(2, Inf, one_of(not, invalids...)),
+                name = &quot;TLD&quot;
+            ),
+            of(:maybe, raw(&quot;:&quot;), capture(
+                between(2, 5, short(:digit)),
+                name = &quot;port&quot;
+            )),
+            of(:maybe, raw(&quot;/&quot;), capture(
+                of(:none_or_some, one_of(not, short(:space))),
+                name = &quot;resource&quot;
+            )),
+            CONSTANTS.stop
+        );
+
+julia&gt; goods = (
+            &quot;http://foo.com/blah_blah&quot;,
+            &quot;http://foo.com/blah_blah/&quot;,
+            &quot;http://foo.com/blah_blah_(wikipedia)&quot;,
+            &quot;http://foo.com/blah_blah_(wikipedia)_(again)&quot;,
+            &quot;http://www.example.com/wpstyle/?p=364&quot;,
+            &quot;https://www.example.com/foo/?bar=baz&amp;inga=42&amp;quux&quot;,
+            &quot;http://✪df.ws/123&quot;,
+            &quot;http://userid:password@example.com:8080&quot;,
+            &quot;http://userid:password@example.com:8080/&quot;,
+            &quot;http://userid@example.com&quot;,
+            &quot;http://userid@example.com/&quot;,
+            &quot;http://userid@example.com:8080&quot;,
+            &quot;http://userid@example.com:8080/&quot;,
+            &quot;http://userid:password@example.com&quot;,
+            &quot;http://userid:password@example.com/&quot;,
+            &quot;http://➡.ws/䨹&quot;,
+            &quot;http://⌘.ws&quot;,
+            &quot;http://⌘.ws/&quot;,
+            &quot;http://foo.com/blah_(wikipedia)#cite-1&quot;,
+            &quot;http://foo.com/blah_(wikipedia)_blah#cite-1&quot;,
+            &quot;http://foo.com/unicode_(✪)_in_parens&quot;,
+            &quot;http://foo.com/(something)?after=parens&quot;,
+            &quot;http://☺.damowmow.com/&quot;,
+            &quot;http://code.google.com/events/#&amp;product=browser&quot;,
+            &quot;http://j.mp&quot;,
+            &quot;ftp://foo.bar/baz&quot;,
+            &quot;http://foo.bar/?q=Test%20URL-encoded%20stuff&quot;,
+            &quot;http://مثال.إختبار&quot;,
+            &quot;http://例子.测试&quot;,
+            &quot;http://-.~_!&amp;&#39;()*+,;=:%40:80%2f::::::@example.com&quot;,
+            &quot;http://1337.net&quot;,
+            &quot;http://a.b-c.de&quot;,
+            &quot;http://223.255.255.254&quot;
+        );
+
+julia&gt; bads = (
+            &quot;http://&quot;,
+            &quot;http://.&quot;,
+            &quot;http://..&quot;,
+            &quot;http://../&quot;,
+            &quot;http://?&quot;,
+            &quot;http://??&quot;,
+            &quot;http://??/&quot;,
+            &quot;http://#&quot;,
+            &quot;http://##&quot;,
+            &quot;http://##/&quot;,
+            &quot;http://foo.bar?q=Spaces should be encoded&quot;,
+            &quot;//&quot;,
+            &quot;//a&quot;,
+            &quot;///a&quot;,
+            &quot;///&quot;,
+            &quot;http:///a&quot;,
+            &quot;foo.com&quot;,
+            &quot;rdar://1234&quot;,
+            &quot;h://test&quot;,
+            &quot;http:// shouldfail.com&quot;,
+            &quot;:// should fail&quot;,
+            &quot;http://foo.bar/foo(bar)baz quux&quot;,
+            &quot;ftps://foo.bar/&quot;,
+            &quot;http://-error-.invalid/&quot;,
+            &quot;http://-a.b.co&quot;,
+            &quot;http://a.b-.co&quot;,
+            &quot;http://0.0.0.0&quot;,
+            &quot;http://3628126748&quot;,
+            &quot;http://.www.foo.bar/&quot;,
+            &quot;http://www.foo.bar./&quot;,
+            &quot;http://.www.foo.bar./&quot;
+        );
+
+julia&gt; all(occursin(url_pattern, url) for url in goods)
+true
+
+julia&gt; any(occursin(url_pattern, url) for url in bads)
+false</code></pre><h1 id="Interface-1"><a class="docs-heading-anchor" href="#Interface-1">Interface</a><a class="docs-heading-anchor-permalink" href="#Interface-1" title="Permalink"></a></h1><ul><li><a href="#RegularExpressions.CLASSES"><code>RegularExpressions.CLASSES</code></a></li><li><a href="#RegularExpressions.CONSTANTS"><code>RegularExpressions.CONSTANTS</code></a></li><li><a href="#RegularExpressions.EXTRAS"><code>RegularExpressions.EXTRAS</code></a></li><li><a href="#RegularExpressions.GREEDS"><code>RegularExpressions.GREEDS</code></a></li><li><a href="#RegularExpressions.KINDS"><code>RegularExpressions.KINDS</code></a></li><li><a href="#RegularExpressions.OPTIONS"><code>RegularExpressions.OPTIONS</code></a></li><li><a href="#RegularExpressions.PROPERTIES"><code>RegularExpressions.PROPERTIES</code></a></li><li><a href="#RegularExpressions.QUANTITIES"><code>RegularExpressions.QUANTITIES</code></a></li><li><a href="#RegularExpressions.SHORTS"><code>RegularExpressions.SHORTS</code></a></li><li><a href="#RegularExpressions.not"><code>RegularExpressions.not</code></a></li><li><a href="#RegularExpressions.between-Tuple{Any,Any,Vararg{Any,N} where N}"><code>RegularExpressions.between</code></a></li><li><a href="#RegularExpressions.capture-Tuple"><code>RegularExpressions.capture</code></a></li><li><a href="#RegularExpressions.captured-Tuple{Any}"><code>RegularExpressions.captured</code></a></li><li><a href="#RegularExpressions.class-Tuple{Any}"><code>RegularExpressions.class</code></a></li><li><a href="#RegularExpressions.exists-Tuple{Any}"><code>RegularExpressions.exists</code></a></li><li><a href="#RegularExpressions.extra-Tuple{Any}"><code>RegularExpressions.extra</code></a></li><li><a href="#RegularExpressions.kind-Tuple{Any,Vararg{Any,N} where N}"><code>RegularExpressions.kind</code></a></li><li><a href="#RegularExpressions.of-Tuple{Symbol,Vararg{Any,N} where N}"><code>RegularExpressions.of</code></a></li><li><a href="#RegularExpressions.one_of-Tuple"><code>RegularExpressions.one_of</code></a></li><li><a href="#RegularExpressions.option-Tuple{}"><code>RegularExpressions.option</code></a></li><li><a href="#RegularExpressions.or-Tuple"><code>RegularExpressions.or</code></a></li><li><a href="#RegularExpressions.pattern-Tuple"><code>RegularExpressions.pattern</code></a></li><li><a href="#RegularExpressions.property-Tuple{Any}"><code>RegularExpressions.property</code></a></li><li><a href="#RegularExpressions.raw-Tuple{Any}"><code>RegularExpressions.raw</code></a></li><li><a href="#RegularExpressions.recurred-Tuple{Number}"><code>RegularExpressions.recurred</code></a></li><li><a href="#RegularExpressions.relative-Tuple{Any}"><code>RegularExpressions.relative</code></a></li><li><a href="#RegularExpressions.script-Tuple{Any}"><code>RegularExpressions.script</code></a></li><li><a href="#RegularExpressions.short-Tuple{Any}"><code>RegularExpressions.short</code></a></li><li><a href="#RegularExpressions.template-Tuple"><code>RegularExpressions.template</code></a></li><li><a href="#RegularExpressions.through-Tuple{Any,Any}"><code>RegularExpressions.through</code></a></li><li><a href="#RegularExpressions.version-Tuple{Any}"><code>RegularExpressions.version</code></a></li><li><a href="#RegularExpressions.whether"><code>RegularExpressions.whether</code></a></li></ul><article class="docstring"><header><a class="docstring-binding" id="RegularExpressions.CLASSES" href="#RegularExpressions.CLASSES"><code>RegularExpressions.CLASSES</code></a> — <span class="docstring-category">Constant</span></header><section><div><pre><code class="language-julia">CLASSES</code></pre><p>Access with <a href="#RegularExpressions.class-Tuple{Any}"><code>class</code></a>.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/bramtayl/RegularExpressions.jl/blob/44f49793fbed54d558f692c3b1268393500a5752/src/RegularExpressions.jl#L294-L298">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="RegularExpressions.CONSTANTS" href="#RegularExpressions.CONSTANTS"><code>RegularExpressions.CONSTANTS</code></a> — <span class="docstring-category">Constant</span></header><section><div><pre><code class="language-julia">CONSTANTS</code></pre><p>Plain commands.</p><pre><code class="language-julia-repl">julia&gt; using RegularExpressions
+
+julia&gt; p = pattern(CONSTANTS.any)
+r&quot;.&quot;
+
+julia&gt; occursin(p, &quot;a&quot;)
+true</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/bramtayl/RegularExpressions.jl/blob/44f49793fbed54d558f692c3b1268393500a5752/src/RegularExpressions.jl#L48-L62">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="RegularExpressions.EXTRAS" href="#RegularExpressions.EXTRAS"><code>RegularExpressions.EXTRAS</code></a> — <span class="docstring-category">Constant</span></header><section><div><pre><code class="language-julia">EXTRAS</code></pre><p>Access with <a href="#RegularExpressions.extra-Tuple{Any}"><code>extra</code></a>.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/bramtayl/RegularExpressions.jl/blob/44f49793fbed54d558f692c3b1268393500a5752/src/RegularExpressions.jl#L548-L552">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="RegularExpressions.GREEDS" href="#RegularExpressions.GREEDS"><code>RegularExpressions.GREEDS</code></a> — <span class="docstring-category">Constant</span></header><section><div><pre><code class="language-julia">GREEDS</code></pre><p>Access with <a href="#RegularExpressions.of-Tuple{Symbol,Vararg{Any,N} where N}"><code>of</code></a> or <a href="#RegularExpressions.between-Tuple{Any,Any,Vararg{Any,N} where N}"><code>between</code></a>.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/bramtayl/RegularExpressions.jl/blob/44f49793fbed54d558f692c3b1268393500a5752/src/RegularExpressions.jl#L342-L346">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="RegularExpressions.KINDS" href="#RegularExpressions.KINDS"><code>RegularExpressions.KINDS</code></a> — <span class="docstring-category">Constant</span></header><section><div><pre><code class="language-julia">KINDS</code></pre><p>Access via <a href="#RegularExpressions.kind-Tuple{Any,Vararg{Any,N} where N}"><code>kind</code></a>.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/bramtayl/RegularExpressions.jl/blob/44f49793fbed54d558f692c3b1268393500a5752/src/RegularExpressions.jl#L453-L457">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="RegularExpressions.OPTIONS" href="#RegularExpressions.OPTIONS"><code>RegularExpressions.OPTIONS</code></a> — <span class="docstring-category">Constant</span></header><section><div><pre><code class="language-julia">OPTIONS</code></pre><p>Access with <a href="#RegularExpressions.option-Tuple{}"><code>option</code></a></p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/bramtayl/RegularExpressions.jl/blob/44f49793fbed54d558f692c3b1268393500a5752/src/RegularExpressions.jl#L499-L503">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="RegularExpressions.PROPERTIES" href="#RegularExpressions.PROPERTIES"><code>RegularExpressions.PROPERTIES</code></a> — <span class="docstring-category">Constant</span></header><section><div><pre><code class="language-julia">PROPERTIES</code></pre><p>Access with <a href="#RegularExpressions.property-Tuple{Any}"><code>property</code></a>.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/bramtayl/RegularExpressions.jl/blob/44f49793fbed54d558f692c3b1268393500a5752/src/RegularExpressions.jl#L122-L126">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="RegularExpressions.QUANTITIES" href="#RegularExpressions.QUANTITIES"><code>RegularExpressions.QUANTITIES</code></a> — <span class="docstring-category">Constant</span></header><section><div><pre><code class="language-julia">QUANTITIES</code></pre><p>Access with <a href="#RegularExpressions.of-Tuple{Symbol,Vararg{Any,N} where N}"><code>of</code></a>.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/bramtayl/RegularExpressions.jl/blob/44f49793fbed54d558f692c3b1268393500a5752/src/RegularExpressions.jl#L353-L357">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="RegularExpressions.SHORTS" href="#RegularExpressions.SHORTS"><code>RegularExpressions.SHORTS</code></a> — <span class="docstring-category">Constant</span></header><section><div><pre><code class="language-julia">SHORTS</code></pre><p>Access with <a href="#RegularExpressions.short-Tuple{Any}"><code>short</code></a>.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/bramtayl/RegularExpressions.jl/blob/44f49793fbed54d558f692c3b1268393500a5752/src/RegularExpressions.jl#L73-L77">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="RegularExpressions.not" href="#RegularExpressions.not"><code>RegularExpressions.not</code></a> — <span class="docstring-category">Constant</span></header><section><div><pre><code class="language-julia">not</code></pre><p>Use to negate a pattern.</p><p>Use with <a href="#RegularExpressions.short-Tuple{Any}"><code>short</code></a>, <a href="#RegularExpressions.option-Tuple{}"><code>option</code></a>, <a href="#RegularExpressions.class-Tuple{Any}"><code>class</code></a>, <a href="#RegularExpressions.one_of-Tuple"><code>one_of</code></a>, <a href="#RegularExpressions.property-Tuple{Any}"><code>property</code></a>, or <a href="#RegularExpressions.script-Tuple{Any}"><code>script</code></a>.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/bramtayl/RegularExpressions.jl/blob/44f49793fbed54d558f692c3b1268393500a5752/src/RegularExpressions.jl#L8-L15">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="RegularExpressions.between-Tuple{Any,Any,Vararg{Any,N} where N}" href="#RegularExpressions.between-Tuple{Any,Any,Vararg{Any,N} where N}"><code>RegularExpressions.between</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">between(low, high, them...; greed = :greedy)</code></pre><p>Between <code>low</code> and <code>high</code> of <code>it</code> with a certain <code>greed</code>. Access <a href="#RegularExpressions.GREEDS"><code>GREEDS</code></a>.</p><pre><code class="language-julia-repl">julia&gt; using RegularExpressions
+
+julia&gt; p = pattern(between(1, 3, &quot;a&quot;))
+r&quot;a{1,3}&quot;
+
+julia&gt; occursin(p, &quot;aa&quot;)
+true
+
+julia&gt; p = pattern(between(2, Inf, &quot;a&quot;))
+r&quot;a{2,}&quot;
+
+julia&gt; occursin(p, &quot;aaa&quot;)
+true</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/bramtayl/RegularExpressions.jl/blob/44f49793fbed54d558f692c3b1268393500a5752/src/RegularExpressions.jl#L392-L413">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="RegularExpressions.capture-Tuple" href="#RegularExpressions.capture-Tuple"><code>RegularExpressions.capture</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">capture(them...; name = nothing)</code></pre><p>Capture <code>them</code> with optional <code>name</code>. See examples in <a href="#RegularExpressions.captured-Tuple{Any}"><code>captured</code></a>.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/bramtayl/RegularExpressions.jl/blob/44f49793fbed54d558f692c3b1268393500a5752/src/RegularExpressions.jl#L440-L444">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="RegularExpressions.captured-Tuple{Any}" href="#RegularExpressions.captured-Tuple{Any}"><code>RegularExpressions.captured</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">captured(it)</code></pre><p>Refer to a <a href="#RegularExpressions.capture-Tuple"><code>capture</code></a>d group. See <a href="#RegularExpressions.relative-Tuple{Any}"><code>relative</code></a>.</p><pre><code class="language-julia-repl">julia&gt; using RegularExpressions
+
+julia&gt; p = pattern(capture(&quot;a&quot;), captured(1))
+r&quot;(a)\g&lt;1&gt;&quot;
+
+julia&gt; occursin(p, &quot;aa&quot;)
+true</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/bramtayl/RegularExpressions.jl/blob/44f49793fbed54d558f692c3b1268393500a5752/src/RegularExpressions.jl#L640-L654">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="RegularExpressions.class-Tuple{Any}" href="#RegularExpressions.class-Tuple{Any}"><code>RegularExpressions.class</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">class([::Not], it)</code></pre><p>Character classes. Access <a href="#RegularExpressions.CLASSES"><code>CLASSES</code></a>. You can negate all <code>class</code>es with <a href="#RegularExpressions.not"><code>not</code></a>.</p><pre><code class="language-julia-repl">julia&gt; using RegularExpressions
+
+julia&gt; p = pattern(one_of(class(:space)))
+r&quot;[[:space:]]&quot;
+
+julia&gt; occursin(p, &quot; &quot;)
+true
+
+julia&gt; p = pattern(one_of(class(not, :space)))
+r&quot;[[:^space:]]&quot;
+
+julia&gt; occursin(p, &quot;a&quot;)
+true</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/bramtayl/RegularExpressions.jl/blob/44f49793fbed54d558f692c3b1268393500a5752/src/RegularExpressions.jl#L316-L337">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="RegularExpressions.exists-Tuple{Any}" href="#RegularExpressions.exists-Tuple{Any}"><code>RegularExpressions.exists</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">exists(it)</code></pre><p>Check whether a capture group. For use with <a href="#RegularExpressions.whether"><code>whether</code></a>.</p><pre><code class="language-julia-repl">julia&gt; using RegularExpressions
+
+julia&gt; p = pattern(
+            CONSTANTS.start,
+            of(:maybe, capture(&quot;a&quot;, name = &quot;first&quot;)),
+            whether(exists(&quot;first&quot;), &quot;b&quot;, &quot;c&quot;)
+        )
+r&quot;^(?:(?&lt;first&gt;a))?(?(&lt;first&gt;)b|c)&quot;
+
+julia&gt; occursin(p, &quot;ab&quot;)
+true</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/bramtayl/RegularExpressions.jl/blob/44f49793fbed54d558f692c3b1268393500a5752/src/RegularExpressions.jl#L683-L701">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="RegularExpressions.extra-Tuple{Any}" href="#RegularExpressions.extra-Tuple{Any}"><code>RegularExpressions.extra</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">extra(it)
+extra(it, name)
+extra(it, value::Number)</code></pre><p><code>extra</code> command. Access <a href="#RegularExpressions.EXTRAS"><code>EXTRAS</code></a>.</p><pre><code class="language-julia-repl">julia&gt; using RegularExpressions
+
+julia&gt; p = pattern(extra(:standard_newline), &quot;a&quot;)
+r&quot;(*ANYCRLF)a&quot;
+
+julia&gt; occursin(p, &quot;a\r&quot;)
+true
+
+julia&gt; extra(:limit_match, 0)
+&quot;(*LIMIT_MATCH=0)&quot;
+
+julia&gt; extra(:mark, &quot;name&quot;)
+&quot;(*MARK:name)&quot;</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/bramtayl/RegularExpressions.jl/blob/44f49793fbed54d558f692c3b1268393500a5752/src/RegularExpressions.jl#L582-L604">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="RegularExpressions.kind-Tuple{Any,Vararg{Any,N} where N}" href="#RegularExpressions.kind-Tuple{Any,Vararg{Any,N} where N}"><code>RegularExpressions.kind</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">kind([::Not], a_kind, them...)</code></pre><p>A variety of syntaxes: <code>a_kind</code> of <code>them</code>. Access <a href="#RegularExpressions.KINDS"><code>KINDS</code></a>. Use <code>repr</code> to pass strings to callouts. You can negate look-ahead and look-behinds with <a href="#RegularExpressions.not"><code>not</code></a>.</p><pre><code class="language-julia-repl">julia&gt; using RegularExpressions
+
+julia&gt; p = pattern(kind(:before, &quot;a&quot;), &quot;b&quot;)
+r&quot;(?&lt;=a)b&quot;
+
+julia&gt; occursin(p, &quot;ab&quot;)
+true
+
+julia&gt; negated = pattern(kind(not, :before, &quot;a&quot;), &quot;b&quot;)
+r&quot;(?&lt;!a)b&quot;
+
+julia&gt; occursin(negated, &quot;ab&quot;)
+false</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/bramtayl/RegularExpressions.jl/blob/44f49793fbed54d558f692c3b1268393500a5752/src/RegularExpressions.jl#L469-L491">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="RegularExpressions.of-Tuple{Symbol,Vararg{Any,N} where N}" href="#RegularExpressions.of-Tuple{Symbol,Vararg{Any,N} where N}"><code>RegularExpressions.of</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">of(quantity::Symbol, them...; greed = :greedy)
+of(quantity::Number, them...)</code></pre><p>A <code>quantity</code> <code>of</code> <code>it</code> with a certain <code>greed</code>. Acccess <a href="#RegularExpressions.QUANTITIES"><code>QUANTITIES</code></a> and <a href="#RegularExpressions.GREEDS"><code>GREEDS</code></a>.</p><pre><code class="language-julia-repl">julia&gt; using RegularExpressions
+
+julia&gt; p = pattern(of(:some, &quot;a&quot;))
+r&quot;a+&quot;
+
+julia&gt; occursin(p, &quot;aa&quot;)
+true
+
+julia&gt; p = pattern(of(2, &quot;a&quot;))
+r&quot;a{2}&quot;
+
+julia&gt; occursin(p, &quot;aa&quot;)
+true</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/bramtayl/RegularExpressions.jl/blob/44f49793fbed54d558f692c3b1268393500a5752/src/RegularExpressions.jl#L364-L386">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="RegularExpressions.one_of-Tuple" href="#RegularExpressions.one_of-Tuple"><code>RegularExpressions.one_of</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">one_of([::Not], them...)</code></pre><p>Create a character class.  You can negate all classes with <a href="#RegularExpressions.not"><code>not</code></a>.</p><pre><code class="language-julia-repl">julia&gt; using RegularExpressions
+
+julia&gt; p = pattern(one_of(&#39;a&#39;, &#39;b&#39;))
+r&quot;[ab]&quot;
+
+julia&gt; occursin(p, &quot;b&quot;)
+true
+
+julia&gt; p = pattern(one_of(not, &#39;a&#39;, &#39;b&#39;))
+r&quot;[^ab]&quot;
+
+julia&gt; occursin(p, &quot;c&quot;)
+true</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/bramtayl/RegularExpressions.jl/blob/44f49793fbed54d558f692c3b1268393500a5752/src/RegularExpressions.jl#L251-L271">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="RegularExpressions.option-Tuple{}" href="#RegularExpressions.option-Tuple{}"><code>RegularExpressions.option</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">option([::Not]; options...)</code></pre><p><code>option</code>. Access <a href="#RegularExpressions.OPTIONS"><code>OPTIONS</code></a>.</p><pre><code class="language-julia-repl">julia&gt; using RegularExpressions
+
+julia&gt; p = pattern(option(caseless = true, ignore_space = true), &quot;a &quot;)
+r&quot;(?ix)a &quot;
+
+julia&gt; occursin(p, &quot;A&quot;)
+true
+
+julia&gt; p = pattern(option(caseless = true), option(not, caseless = true), &quot;a&quot;)
+r&quot;(?i)(?-i)a&quot;
+
+julia&gt; occursin(p, &quot;A&quot;)
+false</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/bramtayl/RegularExpressions.jl/blob/44f49793fbed54d558f692c3b1268393500a5752/src/RegularExpressions.jl#L523-L543">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="RegularExpressions.or-Tuple" href="#RegularExpressions.or-Tuple"><code>RegularExpressions.or</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">or(them...)</code></pre><p>One of <code>them</code>.</p><pre><code class="language-julia-repl">julia&gt; using RegularExpressions
+
+julia&gt; p = pattern(or(&quot;a&quot;, &quot;b&quot;))
+r&quot;a|b&quot;
+
+julia&gt; occursin(p, &quot;b&quot;)
+true</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/bramtayl/RegularExpressions.jl/blob/44f49793fbed54d558f692c3b1268393500a5752/src/RegularExpressions.jl#L422-L436">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="RegularExpressions.pattern-Tuple" href="#RegularExpressions.pattern-Tuple"><code>RegularExpressions.pattern</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">pattern(them..., options...)</code></pre><p>Splat of <code>Regex</code>. Options can be in <a href="#RegularExpressions.OPTIONS"><code>OPTIONS</code></a></p><pre><code class="language-julia-repl">julia&gt; using RegularExpressions
+
+julia&gt; p = pattern(&quot;a&quot;, &quot;b&quot;)
+r&quot;ab&quot;
+
+julia&gt; occursin(p, &quot;ab&quot;)
+true
+
+julia&gt; p = pattern(&quot;A&quot;, caseless = true)
+r&quot;A&quot;i
+
+julia&gt; occursin(p, &quot;a&quot;)
+true</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/bramtayl/RegularExpressions.jl/blob/44f49793fbed54d558f692c3b1268393500a5752/src/RegularExpressions.jl#L658-L678">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="RegularExpressions.property-Tuple{Any}" href="#RegularExpressions.property-Tuple{Any}"><code>RegularExpressions.property</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">property([::Not], general, [specific])</code></pre><p>A character property. Access <a href="#RegularExpressions.PROPERTIES"><code>PROPERTIES</code></a>. You can negate all properties with <a href="#RegularExpressions.not"><code>not</code></a>.</p><pre><code class="language-julia-repl">julia&gt; using RegularExpressions
+
+julia&gt; p = pattern(property(:seperator))
+r&quot;\p{Z}&quot;
+
+julia&gt; occursin(p, &quot; &quot;)
+true
+
+julia&gt; p = pattern(property(not, :seperator))
+r&quot;\P{Z}&quot;
+
+julia&gt; occursin(p, &quot;a&quot;)
+true
+
+julia&gt; p = pattern(property(:seperator, :space))
+r&quot;\p{Zs}&quot;
+
+julia&gt; occursin(p, &quot; &quot;)
+true
+
+julia&gt; p = pattern(property(not, :seperator, :space))
+r&quot;\P{Zs}&quot;
+
+julia&gt; occursin(p, &quot;a&quot;)
+true</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/bramtayl/RegularExpressions.jl/blob/44f49793fbed54d558f692c3b1268393500a5752/src/RegularExpressions.jl#L181-L214">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="RegularExpressions.raw-Tuple{Any}" href="#RegularExpressions.raw-Tuple{Any}"><code>RegularExpressions.raw</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">raw(it)</code></pre><p>Escape punctuation.</p><pre><code class="language-julia-repl">julia&gt; using RegularExpressions
+
+julia&gt; p = pattern(raw(&quot;1.0&quot;))
+r&quot;1\.0&quot;
+
+julia&gt; occursin(p, &quot;v1.0&quot;)
+true</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/bramtayl/RegularExpressions.jl/blob/44f49793fbed54d558f692c3b1268393500a5752/src/RegularExpressions.jl#L28-L42">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="RegularExpressions.recurred-Tuple{Number}" href="#RegularExpressions.recurred-Tuple{Number}"><code>RegularExpressions.recurred</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">recurred(it::Number)
+recurred(it)</code></pre><p>Check for recursion. Use with <a href="#RegularExpressions.whether"><code>whether</code></a>.</p><pre><code class="language-julia-repl">julia&gt; using RegularExpressions
+
+julia&gt; recurred(1)
+&quot;R1&quot;
+
+julia&gt; recurred(&quot;name&quot;)
+&quot;R&amp;name&quot;</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/bramtayl/RegularExpressions.jl/blob/44f49793fbed54d558f692c3b1268393500a5752/src/RegularExpressions.jl#L778-L793">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="RegularExpressions.relative-Tuple{Any}" href="#RegularExpressions.relative-Tuple{Any}"><code>RegularExpressions.relative</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">relative(it)</code></pre><p>Mark a reference as relative. For use with <a href="#RegularExpressions.captured-Tuple{Any}"><code>captured</code></a> or <a href="#RegularExpressions.whether"><code>whether</code></a>.</p><pre><code class="language-julia-repl">julia&gt; using RegularExpressions
+
+julia&gt; p = pattern(captured(relative(1)), capture(&quot;a&quot;))
+r&quot;\g&lt;+1&gt;(a)&quot;
+
+julia&gt; occursin(p, &quot;aa&quot;)
+true
+
+julia&gt; p = pattern(capture(&quot;a&quot;), captured(relative(-1)))
+r&quot;(a)\g&lt;-1&gt;&quot;
+
+julia&gt; occursin(p, &quot;aa&quot;)
+true</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/bramtayl/RegularExpressions.jl/blob/44f49793fbed54d558f692c3b1268393500a5752/src/RegularExpressions.jl#L610-L631">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="RegularExpressions.script-Tuple{Any}" href="#RegularExpressions.script-Tuple{Any}"><code>RegularExpressions.script</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">script([::Not], it)</code></pre><p>A character from a script. You can negate all <code>script</code>s with <a href="#RegularExpressions.not"><code>not</code></a>.</p><pre><code class="language-julia-repl">julia&gt; using RegularExpressions
+
+julia&gt; p = pattern(script(:Han))
+r&quot;\p{Han}&quot;
+
+julia&gt; occursin(p, &quot;中&quot;)
+true
+
+julia&gt; p = pattern(script(not, :Han))
+r&quot;\P{Han}&quot;
+
+julia&gt; occursin(p, &quot;a&quot;)
+true</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/bramtayl/RegularExpressions.jl/blob/44f49793fbed54d558f692c3b1268393500a5752/src/RegularExpressions.jl#L226-L246">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="RegularExpressions.short-Tuple{Any}" href="#RegularExpressions.short-Tuple{Any}"><code>RegularExpressions.short</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">short([::Not], it)</code></pre><p>A <code>short</code> command. Access <a href="#RegularExpressions.SHORTS"><code>SHORTS</code></a>. You can negate some <code>short</code> commands with <a href="#RegularExpressions.not"><code>not</code></a>.</p><pre><code class="language-julia-repl">julia&gt; using RegularExpressions
+
+julia&gt; p = pattern(short(:space))
+r&quot;\s&quot;
+
+julia&gt; occursin(p, &quot; &quot;)
+true
+
+julia&gt; p = pattern(short(not, :space))
+r&quot;\S&quot;
+
+julia&gt; occursin(p, &quot;a&quot;)
+true</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/bramtayl/RegularExpressions.jl/blob/44f49793fbed54d558f692c3b1268393500a5752/src/RegularExpressions.jl#L96-L117">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="RegularExpressions.template-Tuple" href="#RegularExpressions.template-Tuple"><code>RegularExpressions.template</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">template(them...)</code></pre><p>Splat of <code>SubstitutionString</code>.</p><pre><code class="language-julia-repl">julia&gt; using RegularExpressions
+
+julia&gt; p = pattern(capture(&quot;a&quot;))
+r&quot;(a)&quot;
+
+julia&gt; t = template(captured(1), &quot;b&quot;)
+s&quot;\\g&lt;1&gt;b&quot;
+
+julia&gt; replace(&quot;a&quot;, p =&gt; t)
+&quot;ab&quot;</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/bramtayl/RegularExpressions.jl/blob/44f49793fbed54d558f692c3b1268393500a5752/src/RegularExpressions.jl#L705-L722">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="RegularExpressions.through-Tuple{Any,Any}" href="#RegularExpressions.through-Tuple{Any,Any}"><code>RegularExpressions.through</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">through(start, stop)</code></pre><p>A range of characters</p><pre><code class="language-julia-repl">julia&gt; using RegularExpressions
+
+julia&gt; p = pattern(one_of(through(&#39;a&#39;, &#39;c&#39;)))
+r&quot;[a-c]&quot;
+
+julia&gt; occursin(p, &quot;b&quot;)
+true</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/bramtayl/RegularExpressions.jl/blob/44f49793fbed54d558f692c3b1268393500a5752/src/RegularExpressions.jl#L276-L290">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="RegularExpressions.version-Tuple{Any}" href="#RegularExpressions.version-Tuple{Any}"><code>RegularExpressions.version</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">version(it; at_least = false)</code></pre><p>Check whether the version of PCRE2 is <code>it</code>, (or, <code>at_least</code> <code>it</code>). For use with <a href="#RegularExpressions.whether"><code>whether</code></a>.</p><pre><code class="language-julia-repl">julia&gt; using RegularExpressions
+
+julia&gt; p = pattern(whether(version(1), &quot;new&quot;, &quot;old&quot;))
+r&quot;(?(VERSION=1)new|old)&quot;
+
+julia&gt; occursin(p, &quot;new&quot;)
+false
+
+julia&gt; p = pattern(whether(version(1, at_least = true), &quot;new&quot;, &quot;old&quot;))
+r&quot;(?(VERSION&gt;=1)new|old)&quot;
+
+julia&gt; occursin(p, &quot;new&quot;)
+true</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/bramtayl/RegularExpressions.jl/blob/44f49793fbed54d558f692c3b1268393500a5752/src/RegularExpressions.jl#L726-L747">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="RegularExpressions.whether" href="#RegularExpressions.whether"><code>RegularExpressions.whether</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia">whether(condition, yes, no = &quot;&quot;)</code></pre><p>Test for a condition. See <a href="#RegularExpressions.relative-Tuple{Any}"><code>relative</code></a>, <a href="#RegularExpressions.exists-Tuple{Any}"><code>exists</code></a>, <a href="#RegularExpressions.recurred-Tuple{Number}"><code>recurred</code></a>, and <a href="#RegularExpressions.version-Tuple{Any}"><code>version</code></a>.</p><pre><code class="language-julia-repl">julia&gt; using RegularExpressions
+
+julia&gt; p = pattern(
+            CONSTANTS.start,
+            of(:maybe, capture(&quot;a&quot;)),
+            whether(1, &quot;b&quot;, &quot;c&quot;)
+        )
+r&quot;^(?:(a))?(?(1)b|c)&quot;
+
+julia&gt; occursin(p, &quot;ab&quot;)
+true</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/bramtayl/RegularExpressions.jl/blob/44f49793fbed54d558f692c3b1268393500a5752/src/RegularExpressions.jl#L755-L774">source</a></section></article></article></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Thursday 30 January 2020 01:38">Thursday 30 January 2020</span>. Using Julia version 1.3.1.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
