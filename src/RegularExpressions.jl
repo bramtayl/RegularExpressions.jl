@@ -53,6 +53,9 @@ Plain commands.
 ```jldoctest
 julia> using RegularExpressions
 
+julia> show(CONSTANTS)
+(any = ".", start = "^", stop = "\\\$", define = "DEFINE", recur = "(?R)", recurred = "R")
+
 julia> p = pattern(CONSTANTS.any)
 r"."
 
@@ -123,6 +126,13 @@ export short
     PROPERTIES
 
 Access with [`property`](@ref).
+
+```jldoctest
+julia> using RegularExpressions
+
+julia> show(PROPERTIES)
+(other = ("C", (control = "c", format = "f", unassigned = "n", private = "o", surrogate = "s")), letter = ("L", (lowercase = "l", modifier = "m", other = "o", titlecase = "t", uppercase = "u", cased = "&")), mark = ("M", (spacing = "c", enclosing = "e", non_spacing = "n")), number = ("N", (decimal = "d", letter = "l", other = "o")), punctuation = ("P", (connector = "c", dash = "d", close = "e", final = "f", initial = "i", other = "o", open = "s")), symbol = ("S", (currency = "c", modifier = "k", math = "m", other = "o")), seperator = ("Z", (line = "l", paragraph = "p", space = "s")), special = ("X", (letter_or_digit = "an", space = "sp", exists = "uc", word = "wd")))
+```
 """
 const PROPERTIES = (
     other = ("C", (
@@ -295,6 +305,13 @@ export through
     CLASSES
 
 Access with [`class`](@ref).
+
+```jldoctest
+julia> using RegularExpressions
+
+julia> show(CLASSES)
+(letter_or_digit = "alnum", letter = "alpha", standard = "ascii", blank = "blank", control = "cntrl", digit = "digit", prints = "graph", lowercase = "lower", prints_or_space = "print", punctuation = "punct", space = "space", uppercase = "upper", word = "word", hexadecimal = "xdigit")
+```
 """
 const CLASSES = (
     letter_or_digit = "alnum",
@@ -343,6 +360,13 @@ export class
     GREEDS
 
 Access with [`of`](@ref) or [`between`](@ref).
+
+```jldoctest
+julia> using RegularExpressions
+
+julia> show(GREEDS)
+(possessive = "+", lazy = "?", greedy = "")
+```
 """
 const GREEDS = (
     possessive = "+",
@@ -354,6 +378,14 @@ export GREEDS
     QUANTITIES
 
 Access with [`of`](@ref).
+
+
+```jldoctest
+julia> using RegularExpressions
+
+julia> show(QUANTITIES)
+(maybe = "?", none_or_some = "*", some = "+")
+```
 """
 const QUANTITIES = (
     maybe = "?",
@@ -454,6 +486,13 @@ export capture
     KINDS
 
 Access via [`kind`](@ref).
+
+```jldoctest
+julia> using RegularExpressions
+
+julia> show(KINDS)
+(group = ":", reset = "|", atomic = ">", comment = "#", after = "=", before = "<=", callout = "C")
+```
 """
 const KINDS = (
     group = ":",
@@ -500,6 +539,13 @@ export kind
     OPTIONS
 
 Access with [`option`](@ref)
+
+```jldoctest
+julia> using RegularExpressions
+
+julia> show(OPTIONS)
+(caseless = "i", duplicate_names = "J", multi_line = "m", no_auto_capture = "n", single_line = "s", lazy = "U", ignore_space = "x", ignore_all_space = "xx", unset = "^", recur = "R", callout = "C")
+```
 """
 const OPTIONS = (
     caseless = "i",
@@ -549,6 +595,13 @@ export option
     EXTRAS
 
 Access with [`extra`](@ref).
+
+```jldoctest
+julia> using RegularExpressions
+
+julia> show(EXTRAS)
+(limit_depth = "LIMIT_DEPTH", limit_heap = "LIMIT_HEAP", limit_match = "LIMIT_MATCH", not_empty = "NOTEMPTY", not_empty_at_start = "NOTEMPTY_ATSTART", no_auto_possess = "NO_AUTO_POSSESS", no_dot_star_anchor = "NO_DOTSTAR_ANCHOR", no_just_in_time = "NO_JIT", no_start_optimization = "NO_START_OPT", UTF = "UTF", unicode_properties = "UCP", carriage_return = "CR", linefeed = "LF", carriage_return_linefeed = "CRLF", standard_newline = "ANYCRLF", unicode_newline = "ANY", null = "NUL", standard_boundary = "BSR_ANYCRLF", unicode_boundary = "BSR_UNICODE", accept = "ACCEPT", fail = "FAIL", mark = "MARK", commit = "COMMIT", prune = "PRUNE", skip = "SKIP", then = "THEN")
+```
 """
 const EXTRAS = (
     limit_depth = "LIMIT_DEPTH",
@@ -567,7 +620,7 @@ const EXTRAS = (
     carriage_return_linefeed = "CRLF",
     standard_newline = "ANYCRLF",
     unicode_newline = "ANY",
-    nul = "NUL",
+    null = "NUL",
     standard_boundary = "BSR_ANYCRLF",
     unicode_boundary = "BSR_UNICODE",
     accept = "ACCEPT",
