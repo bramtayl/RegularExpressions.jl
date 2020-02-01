@@ -10,8 +10,8 @@ end
 
 Use to negate a pattern.
 
-Use with [`short`](@ref), [`option`](@ref), [`class`](@ref), [`one_of`](@ref),
-[`property`](@ref), or [`script`](@ref).
+Use with [`class`](@ref), [`kind`](@ref), [`one_of`](@ref), [`option`](@ref),
+[`property`](@ref), [`script`](@ref), or [`short`](@ref).
 """
 const not = Not()
 export not
