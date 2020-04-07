@@ -62,8 +62,14 @@ julia> occursin(p, "a")
 true
 ```
 """
-const CONSTANTS =
-    (any = ".", start = "^", stop = "\$", define = "DEFINE", recur = "(?R)", recurred = "R")
+const CONSTANTS = (
+    any = ".",
+    start = "^",
+    stop = "\$",
+    define = "DEFINE",
+    recur = "(?R)",
+    recurred = "R",
+)
 export CONSTANTS
 
 """
@@ -135,12 +141,12 @@ const PROPERTIES = (
     letter = (
         "L",
         (
-            lowercase = "l",
-            modifier = "m",
-            other = "o",
-            titlecase = "t",
-            uppercase = "u",
-            cased = "&",
+         lowercase = "l",
+         modifier = "m",
+         other = "o",
+         titlecase = "t",
+         uppercase = "u",
+         cased = "&",
         ),
     ),
     mark = ("M", (spacing = "c", enclosing = "e", non_spacing = "n")),
@@ -148,13 +154,13 @@ const PROPERTIES = (
     punctuation = (
         "P",
         (
-            connector = "c",
-            dash = "d",
-            close = "e",
-            final = "f",
-            initial = "i",
-            other = "o",
-            open = "s",
+         connector = "c",
+         dash = "d",
+         close = "e",
+         final = "f",
+         initial = "i",
+         other = "o",
+         open = "s",
         ),
     ),
     symbol = ("S", (currency = "c", modifier = "k", math = "m", other = "o")),
