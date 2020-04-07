@@ -3,8 +3,7 @@ module RegularExpressions
 using Base: SubstitutionString, Generator
 using Base.Iterators: Filter
 
-struct Not
-end
+struct Not end
 """
     not
 
@@ -63,14 +62,8 @@ julia> occursin(p, "a")
 true
 ```
 """
-const CONSTANTS = (
-    any = ".",
-    start = "^",
-    stop = "\$",
-    define = "DEFINE",
-    recur = "(?R)",
-    recurred = "R"
-)
+const CONSTANTS =
+    (any = ".", start = "^", stop = "\$", define = "DEFINE", recur = "(?R)", recurred = "R")
 export CONSTANTS
 
 """
@@ -93,7 +86,7 @@ const SHORTS = (
     strict_stop = "z",
     chomp_stop = "Z",
     match_start = "G",
-    reset = "K"
+    reset = "K",
 )
 export SHORTS
 """
@@ -135,57 +128,38 @@ julia> show(PROPERTIES)
 ```
 """
 const PROPERTIES = (
-    other = ("C", (
-        control = "c",
-        format = "f",
-        unassigned = "n",
-        private = "o",
-        surrogate = "s"
-    )),
-    letter = ("L", (
-        lowercase = "l",
-        modifier = "m",
-        other = "o",
-        titlecase = "t",
-        uppercase = "u",
-        cased = "&"
-    )),
-    mark = ("M", (
-        spacing = "c",
-        enclosing = "e",
-        non_spacing = "n"
-    )),
-    number = ("N", (
-        decimal = "d",
-        letter = "l",
-        other = "o"
-    )),
-    punctuation = ("P", (
-        connector = "c",
-        dash = "d",
-        close = "e",
-        final = "f",
-        initial = "i",
-        other = "o",
-        open = "s"
-    )),
-    symbol = ("S", (
-        currency = "c",
-        modifier = "k",
-        math = "m",
-        other = "o"
-    )),
-    seperator = ("Z", (
-        line = "l",
-        paragraph = "p",
-        space = "s"
-    )),
-    special = ("X", (
-        letter_or_digit = "an",
-        space = "sp",
-        exists = "uc",
-        word = "wd"
-    ))
+    other = (
+        "C",
+        (control = "c", format = "f", unassigned = "n", private = "o", surrogate = "s"),
+    ),
+    letter = (
+        "L",
+        (
+            lowercase = "l",
+            modifier = "m",
+            other = "o",
+            titlecase = "t",
+            uppercase = "u",
+            cased = "&",
+        ),
+    ),
+    mark = ("M", (spacing = "c", enclosing = "e", non_spacing = "n")),
+    number = ("N", (decimal = "d", letter = "l", other = "o")),
+    punctuation = (
+        "P",
+        (
+            connector = "c",
+            dash = "d",
+            close = "e",
+            final = "f",
+            initial = "i",
+            other = "o",
+            open = "s",
+        ),
+    ),
+    symbol = ("S", (currency = "c", modifier = "k", math = "m", other = "o")),
+    seperator = ("Z", (line = "l", paragraph = "p", space = "s")),
+    special = ("X", (letter_or_digit = "an", space = "sp", exists = "uc", word = "wd")),
 )
 export PROPERTIES
 """
@@ -229,8 +203,7 @@ function specific_property(general, specific)
     "$(general_code)$(specifics[specific])"
 end
 property(general, specific) = "\\p{$(specific_property(general, specific))}"
-property(::Not, general, specific) =
-    "\\P{$(specific_property(general, specific))}"
+property(::Not, general, specific) = "\\P{$(specific_property(general, specific))}"
 export property
 
 """
@@ -327,7 +300,7 @@ const CLASSES = (
     space = "space",
     uppercase = "upper",
     word = "word",
-    hexadecimal = "xdigit"
+    hexadecimal = "xdigit",
 )
 export CLASSES
 """
@@ -368,11 +341,7 @@ julia> show(GREEDS)
 (possessive = "+", lazy = "?", greedy = "")
 ```
 """
-const GREEDS = (
-    possessive = "+",
-    lazy = "?",
-    greedy = ""
-)
+const GREEDS = (possessive = "+", lazy = "?", greedy = "")
 export GREEDS
 """
     QUANTITIES
@@ -387,11 +356,7 @@ julia> show(QUANTITIES)
 (maybe = "?", none_or_some = "*", some = "+")
 ```
 """
-const QUANTITIES = (
-    maybe = "?",
-    none_or_some = "*",
-    some = "+"
-)
+const QUANTITIES = (maybe = "?", none_or_some = "*", some = "+")
 export QUANTITIES
 """
     of(quantity::Symbol, them...; greed = :greedy)
@@ -501,7 +466,7 @@ const KINDS = (
     comment = "#",
     after = "=",
     before = "<=",
-    callout = "C"
+    callout = "C",
 )
 
 export KINDS
@@ -558,14 +523,11 @@ const OPTIONS = (
     ignore_all_space = "xx",
     unset = "^",
     recur = "R",
-    callout = "C"
+    callout = "C",
 )
 export OPTIONS
 make_flags(options, OPTIONS) =
-    join(Generator(
-        pair -> OPTIONS[pair[1]],
-        Filter(pair -> pair[2], options)
-    ))
+    join(Generator(pair -> OPTIONS[pair[1]], Filter(pair -> pair[2], options)))
 """
     option([::Not]; options...)
 
@@ -629,7 +591,7 @@ const EXTRAS = (
     commit = "COMMIT",
     prune = "PRUNE",
     skip = "SKIP",
-    then = "THEN"
+    then = "THEN",
 )
 export EXTRAS
 """
@@ -729,8 +691,7 @@ julia> occursin(p, "a")
 true
 ```
 """
-pattern(them...; options...) =
-    Regex(string(them...), make_flags(options, OPTIONS))
+pattern(them...; options...) = Regex(string(them...), make_flags(options, OPTIONS))
 export pattern
 
 """
