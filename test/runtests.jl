@@ -1,4 +1,4 @@
 import RegularExpressions
-import Documenter: doctest
+using Documenter: doctest
 
 doctest(RegularExpressions)
