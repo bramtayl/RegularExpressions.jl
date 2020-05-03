@@ -5,9 +5,7 @@ I'll follow the example from `rex` for [url validation](https://cran.r-project.o
 ```jldoctest
 julia> using RegularExpressions
 
-julia> invalid = raw.((".", "/", " ", "-"));
-
-julia> valid = one_of(not, invalid...);
+julia> valid = one_of(not, raw.((".", "/", " ", "-"))...);
 
 julia> valids = of(:some, valid);
 
